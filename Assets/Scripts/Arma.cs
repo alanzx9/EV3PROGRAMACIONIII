@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class Arma : MonoBehaviour
 {
+
+
+    //ESTE CODIGO SERA PARA TODAS LAS ARMAS, SE PODRA CAMBIAR EL DAÑO Y CADENCIA DE ARMA
     [Header("Estadísticas del Arma")]
     public float dano = 10f;
     public float rango = 100f;

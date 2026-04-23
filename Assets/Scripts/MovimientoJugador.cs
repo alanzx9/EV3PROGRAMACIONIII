@@ -2,6 +2,10 @@ using UnityEngine;
 
 public class MovimientoJugador : MonoBehaviour
 {
+
+
+ //ESTE CODIGO SE USARA PARA EL MOVIMIENTO Y DASH DE JUGADOR
+
     public CharacterController controller;
     [Header("Movimiento (Game Fell")]
 

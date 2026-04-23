@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Enemigo : MonoBehaviour
 {
+
+    // ESTE CODIGO SE USARA PARA LA VIDA DE ENEMIGO Y DAÑO QUE CAUSARA AL JUGADOR
     [Header("Estadisticas")]
     public float saludActual = 100;
 
