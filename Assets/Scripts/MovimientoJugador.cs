@@ -211,6 +211,9 @@ public class MovimientoJugador : MonoBehaviour
             tocandoPared = true;
             normalPared = hit.normal;
         }
+
+        //AGREGAR RAYCAST HACIA DERECHA Y IZQUIERDA
+        // CANCELAR SALTPO "INFINITO" MIENTRAS SE HACE WALLJUMP
     }
 
 }
