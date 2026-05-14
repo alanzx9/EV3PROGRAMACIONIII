@@ -3,7 +3,9 @@ using UnityEngine;
 public class MovimientoJugador : MonoBehaviour
 {
     public CharacterController controller;
-    public Transform camaraJugador; // <-- ¡NUEVO! Aquí arrastraremos tu cámara
+    public Transform camaraJugador; //Aquí arrastraremos tu cámara
+
+    public Transform cameraWeaponTrack;
 
     [Header("Movimiento (Game Feel)")]
     public float velocidadMaxima = 6f;
@@ -19,6 +21,16 @@ public class MovimientoJugador : MonoBehaviour
     public float friccionSlide = 15f;
     public float alturaSlide = 1f;
     public float velocidadCamara = 12f; // <-- Qué tan suave baja y sube la cabeza
+
+    [Header("Wall Jump")]
+
+    [Header("Items")]
+
+    public GameObject nearItem;
+
+    public GameObject itemPrefab;
+    public Transform itemSlot;
+    public GameObject crosshair;
 
     private float alturaNormal;
     private Vector3 centroNormal;
@@ -80,7 +92,7 @@ public class MovimientoJugador : MonoBehaviour
 
         controller.Move(velocidadMovimientoActual * Time.deltaTime);
 
-        // --- ANIMACIÓN SUAVE DE LA CÁMARA (EL TRUCO TÁCTICO) ---
+        // --- ANIMACIÓN SUAVE DE LA CÁMARA ---
         if (camaraJugador != null)
         {
             // Calculamos a qué altura deberían estar los ojos
@@ -103,6 +115,8 @@ public class MovimientoJugador : MonoBehaviour
             if (deslizando) TerminarSlide();
         }
 
+        ItemLogic();
+
         velocidadCaida.y += gravedad * Time.deltaTime;
         controller.Move(velocidadCaida * Time.deltaTime);
     }
@@ -124,5 +138,37 @@ public class MovimientoJugador : MonoBehaviour
         // FÍSICA INSTANTÁNEA: Nos paramos de golpe (la cámara disimulará esto)
         controller.height = alturaNormal;
         controller.center = centroNormal;
+    }
+
+    public void ItemLogic()
+    {
+        if (nearItem != null && Input.GetKeyDown(KeyCode.E))
+        {
+            GameObject instantiatedItem = Instantiate(itemPrefab, itemSlot.position, itemSlot.rotation);
+
+            Destroy(nearItem.gameObject);
+
+            instantiatedItem.transform.parent = itemSlot;
+
+            nearItem = null;
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.layer == LayerMask.NameToLayer("Item"))
+        {
+            Debug.Log("Hay un item cerca");
+            nearItem = other.gameObject;
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.layer == LayerMask.NameToLayer("Item"))
+        {
+            Debug.Log(" ya no Hay un item cerca");
+            nearItem = null;
+        }
     }
 }
