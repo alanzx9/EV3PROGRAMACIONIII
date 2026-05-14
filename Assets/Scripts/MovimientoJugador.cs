@@ -23,6 +23,11 @@ public class MovimientoJugador : MonoBehaviour
     public float velocidadCamara = 12f; // <-- Qué tan suave baja y sube la cabeza
 
     [Header("Wall Jump")]
+    public float distanciaDeteccionPared = 0.7f;
+    public float fuerzaWallJump = 10f;
+    public float fuerzaEmpujePared = 8f;
+    private bool tocandoPared;
+    private Vector3 normalPared;
 
     [Header("Items")]
 
@@ -65,6 +70,8 @@ public class MovimientoJugador : MonoBehaviour
         float z = Input.GetAxisRaw("Vertical");
         Vector3 direccionDeseada = (transform.right * x + transform.forward * z).normalized;
 
+        DetectarPared();
+
         if ((Input.GetKeyDown(KeyCode.C) || Input.GetKeyDown(KeyCode.LeftControl)))
         {
             if (controller.isGrounded && !deslizando && direccionDeseada.magnitude > 0.1f)
@@ -90,7 +97,7 @@ public class MovimientoJugador : MonoBehaviour
             velocidadMovimientoActual = Vector3.SmoothDamp(velocidadMovimientoActual, velocidadObjetivo, ref refVelocidad, tiempoSuavizado);
         }
 
-        controller.Move(velocidadMovimientoActual * Time.deltaTime);
+        //controller.Move(velocidadMovimientoActual * Time.deltaTime);
 
         // --- ANIMACIÓN SUAVE DE LA CÁMARA ---
         if (camaraJugador != null)
@@ -106,19 +113,39 @@ public class MovimientoJugador : MonoBehaviour
 
         if (controller.isGrounded && velocidadCaida.y < 0f)
         {
-            velocidadCaida.y = -2f;
+            velocidadCaida.y = -0.5f;
         }
 
-        if (Input.GetButtonDown("Jump") && controller.isGrounded)
+        if (Input.GetButtonDown("Jump"))
         {
-            velocidadCaida.y = Mathf.Sqrt(fuerzaSalto * -2f * gravedad);
-            if (deslizando) TerminarSlide();
+            // Salto normal
+            if (controller.isGrounded)
+            {
+                velocidadCaida.y = Mathf.Sqrt(fuerzaSalto * -2f * gravedad);
+
+                if (deslizando)
+                    TerminarSlide();
+            }
+            // Wall Jump
+            else if (tocandoPared)
+            {
+                Vector3 direccionSalto = normalPared + Vector3.up;
+
+                velocidadMovimientoActual = direccionSalto * fuerzaEmpujePared;
+                velocidadCaida.y = fuerzaWallJump;
+
+                if (deslizando)
+                    TerminarSlide();
+            }
         }
+
+        velocidadCaida.y += gravedad * Time.deltaTime;
 
         ItemLogic();
 
-        velocidadCaida.y += gravedad * Time.deltaTime;
-        controller.Move(velocidadCaida * Time.deltaTime);
+        // UN SOLO MOVE
+        Vector3 movimientoFinal = velocidadMovimientoActual + velocidadCaida;
+        controller.Move(movimientoFinal * Time.deltaTime);
     }
 
     void IniciarSlide(Vector3 direccion)
@@ -171,4 +198,19 @@ public class MovimientoJugador : MonoBehaviour
             nearItem = null;
         }
     }
+
+    void DetectarPared()
+    {
+        tocandoPared = false;
+
+        RaycastHit hit;
+
+        // Revisamos al frente
+        if (Physics.Raycast(transform.position, transform.forward, out hit, distanciaDeteccionPared))
+        {
+            tocandoPared = true;
+            normalPared = hit.normal;
+        }
+    }
+
 }
