@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 
 #if UNITY_EDITOR
 using UnityEditor; // Solo necesario para dibujar el cono en el editor
@@ -11,6 +12,7 @@ public class Enemigo : MonoBehaviour
 {
     [Header("Estadisticas")]
     public float saludActual = 100;
+    private float saludMaxima;
 
     [Header("Visión")]
     public Transform puntoDeVision; // <-- ¡NUEVO! Aquí arrastramos el hijo
@@ -18,19 +20,43 @@ public class Enemigo : MonoBehaviour
     public float visionAngle = 60f; // Ángulo total (ej. 30 grados a cada lado del centro)
     public Color conoColor = new Color(1, 0, 0, 0.2f); // Color rojo transparente para debug
 
+    [Header("Interfaz")]
+    public Image imagenRellenoVida;
+
     private NavMeshAgent agent;
     private Transform player;
 
     public void RecibirDano(float cantidaDano)
     {
         saludActual -= cantidaDano;
-        Debug.Log("Enemigo Herido!! salud restante: " + saludActual);
+        saludActual = Mathf.Clamp(saludActual, 0, saludMaxima);
+
+        // 2. ¡LLÁMALA AQUÍ PARA QUE LA BARRA BAJE AL RECIBIR EL DISPARO!
+        ActualizarBarra();
 
         if (saludActual <= 0)
         {
             Morir();
         }
     }
+    void ActualizarBarra()
+    {
+        if (imagenRellenoVida != null)
+        {
+            // Calculamos el porcentaje
+            float porcentaje = saludActual / saludMaxima;
+            imagenRellenoVida.fillAmount = porcentaje;
+
+            // Esto imprimirá en la consola el número exacto para ver si la matemática falla
+            Debug.Log("Actualizando barra visual. Porcentaje: " + porcentaje);
+        }
+        else
+        {
+            // Si la imagen está vacía en el Inspector, Unity te gritará este error rojo
+            Debug.LogError("¡OJO! Al enemigo " + gameObject.name + " le falta la Imagen Relleno Vida en el Inspector");
+        }
+    }
+
 
     void Morir()
     {
@@ -43,15 +69,14 @@ public class Enemigo : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
 
+        saludMaxima = saludActual;
+
+        // 1. LLÁMALA AQUÍ PARA QUE LA BARRA INICIE LLENA
+        ActualizarBarra();
+
         if (playerObject != null)
         {
             player = playerObject.transform;
-        }
-
-        // Alerta por si te olvidas de asignar el objeto
-        if (puntoDeVision == null)
-        {
-            Debug.LogError("¡OJO! No asignaste el 'PuntoDeVision' en el Inspector del enemigo: " + gameObject.name);
         }
     }
 

@@ -14,7 +14,7 @@ public class Arma : MonoBehaviour
     void Update()
     {
         // "Fire1" en Unity suele ser el clic izquierdo del ratón
-        if (Input.GetButtonDown("Fire1"))
+        if (Input.GetKeyDown(KeyCode.Mouse0))
         {
             Disparar();
         }
@@ -38,9 +38,9 @@ public class Arma : MonoBehaviour
             // Esta línea roja solo la verás tú en la pestaña "Scene" para comprobar que la cámara apunta bien
             Debug.DrawLine(camaraJugador.transform.position, impacto.point, Color.red, 0.5f);
 
-            Enemigo objetivo = impacto.transform.GetComponent<Enemigo>(); // obtenemos el script Enemigo
+            Enemigo objetivo = impacto.transform.GetComponentInParent<Enemigo>(); // obtenemos el script Enemigo
 
-            if(objetivo != null) // si tiene el script Enemigo
+            if (objetivo != null) // si tiene el script Enemigo
             {
                 objetivo.RecibirDano(dano); // le hacemos dano de nuestra arma
             }
