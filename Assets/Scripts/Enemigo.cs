@@ -61,6 +61,13 @@ public class Enemigo : MonoBehaviour
     void Morir()
     {
         Debug.Log("Enemigo Abatido!");
+
+        GeneradorOleadas generador = FindObjectOfType<GeneradorOleadas>();
+        if (generador != null)
+        {
+            generador.EnemigoMuerto();
+        }
+
         Destroy(gameObject);
     }
 
