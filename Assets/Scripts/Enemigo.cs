@@ -5,7 +5,7 @@ using UnityEngine.AI;
 using UnityEngine.UI;
 
 #if UNITY_EDITOR
-using UnityEditor; // Solo necesario para dibujar el cono en el editor
+using UnityEditor;
 #endif
 
 public class Enemigo : MonoBehaviour
@@ -14,11 +14,21 @@ public class Enemigo : MonoBehaviour
     public float saludActual = 100;
     private float saludMaxima;
 
+    [Header("Ataque")]
+    public float danoAtaque = 15f;
+    public float rangoAtaque = 2.5f;
+    public float tiempoEntreAtaques = 1.5f;
+    private float temporizadorAtaque = 0f;
+
+    [Header("Búsqueda (Patrullaje)")]
+    public float radioDeBusqueda = 15f; // qué tan lejos caminan al azar buscando al jugador
+    private bool teVio = false;         // interruptor para saber si ya te descubrió
+
     [Header("Visión")]
-    public Transform puntoDeVision; // <-- ¡NUEVO! Aquí arrastramos el hijo
+    public Transform puntoDeVision;
     public float visionRange = 20f;
-    public float visionAngle = 60f; // Ángulo total (ej. 30 grados a cada lado del centro)
-    public Color conoColor = new Color(1, 0, 0, 0.2f); // Color rojo transparente para debug
+    public float visionAngle = 60f;
+    public Color conoColor = new Color(1, 0, 0, 0.2f);
 
     [Header("Interfaz")]
     public Image imagenRellenoVida;
@@ -26,118 +36,137 @@ public class Enemigo : MonoBehaviour
     private NavMeshAgent agent;
     private Transform player;
 
-    public void RecibirDano(float cantidaDano)
-    {
-        saludActual -= cantidaDano;
-        saludActual = Mathf.Clamp(saludActual, 0, saludMaxima);
-
-        // 2. ¡LLÁMALA AQUÍ PARA QUE LA BARRA BAJE AL RECIBIR EL DISPARO!
-        ActualizarBarra();
-
-        if (saludActual <= 0)
-        {
-            Morir();
-        }
-    }
-    void ActualizarBarra()
-    {
-        if (imagenRellenoVida != null)
-        {
-            // Calculamos el porcentaje
-            float porcentaje = saludActual / saludMaxima;
-            imagenRellenoVida.fillAmount = porcentaje;
-
-            // Esto imprimirá en la consola el número exacto para ver si la matemática falla
-            Debug.Log("Actualizando barra visual. Porcentaje: " + porcentaje);
-        }
-        else
-        {
-            // Si la imagen está vacía en el Inspector, Unity te gritará este error rojo
-            Debug.LogError("¡OJO! Al enemigo " + gameObject.name + " le falta la Imagen Relleno Vida en el Inspector");
-        }
-    }
-
-
-    void Morir()
-    {
-        Debug.Log("Enemigo Abatido!");
-
-        GeneradorOleadas generador = FindObjectOfType<GeneradorOleadas>();
-        if (generador != null)
-        {
-            generador.EnemigoMuerto();
-        }
-
-        Destroy(gameObject);
-    }
-
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
 
         saludMaxima = saludActual;
-
-        // 1. LLÁMALA AQUÍ PARA QUE LA BARRA INICIE LLENA
         ActualizarBarra();
 
         if (playerObject != null)
         {
             player = playerObject.transform;
         }
+
+        BuscarNuevoPunto();
+    }
+
+    public void RecibirDano(float cantidaDano)
+    {
+        saludActual -= cantidaDano;
+        saludActual = Mathf.Clamp(saludActual, 0, saludMaxima);
+        ActualizarBarra();
+
+        teVio = true;
+
+        if (saludActual <= 0)
+        {
+            Morir();
+        }
+    }
+
+    void ActualizarBarra()
+    {
+        if (imagenRellenoVida != null)
+        {
+            imagenRellenoVida.fillAmount = saludActual / saludMaxima;
+        }
+    }
+
+    void Morir()
+    {
+        GeneradorOleadas generador = FindObjectOfType<GeneradorOleadas>();
+        if (generador != null) generador.EnemigoMuerto();
+
+        Destroy(gameObject);
     }
 
     void Update()
     {
-        // 1. Verificamos que todo exista y que tengamos "ojos" (puntoDeVision)
         if (player != null && agent != null && puntoDeVision != null)
         {
-            float distanceToPlayer = Vector3.Distance(puntoDeVision.position, player.position);
+            float distanceToPlayer = Vector3.Distance(transform.position, player.position);
 
-            // 2. ¿Está dentro de la distancia máxima de visión?
-            if (distanceToPlayer <= visionRange)
+            if (!teVio)
             {
-                // Dirección desde los "ojos" hacia el jugador
-                Vector3 directionToPlayer = (player.position - puntoDeVision.position).normalized;
-
-                // 3. ¿El jugador está dentro del cono frontal (ángulo)?
-                // Comparamos el frente de los OJOS (puntoDeVision.forward) con la dirección al jugador
-                float angleToPlayer = Vector3.Angle(puntoDeVision.forward, directionToPlayer);
-
-                // Dividimos visionAngle por 2 porque Angle() mide el desvío desde el centro
-                if (angleToPlayer <= visionAngle * 0.5f)
+                if (distanceToPlayer <= visionRange)
                 {
-                    RaycastHit hit;
+                    Vector3 directionToPlayer = (player.position - puntoDeVision.position).normalized;
+                    float angleToPlayer = Vector3.Angle(puntoDeVision.forward, directionToPlayer);
 
-                    // 4. Disparamos el láser desde los OJOS (puntoDeVision.position)
-                    if (Physics.Raycast(puntoDeVision.position, directionToPlayer, out hit, visionRange))
+                    if (angleToPlayer <= visionAngle * 0.5f)
                     {
-                        if (hit.transform.CompareTag("Player"))
+                        RaycastHit hit;
+                        if (Physics.Raycast(puntoDeVision.position, directionToPlayer, out hit, visionRange))
                         {
-                            agent.SetDestination(player.position);
+                            if (hit.transform.CompareTag("Player"))
+                            {
+                                // ¡Te descubrió! Activa la persecución
+                                teVio = true;
+                                Debug.Log("¡Un enemigo te ha visto!");
+                            }
                         }
                     }
+                }
+            }
+
+            if (teVio)
+            {
+                agent.SetDestination(player.position);
+            }
+            else
+            {
+                if (!agent.pathPending && agent.remainingDistance < 0.5f)
+                {
+                    BuscarNuevoPunto();
+                }
+            }
+
+            if (temporizadorAtaque > 0) temporizadorAtaque -= Time.deltaTime;
+
+            if (distanceToPlayer <= rangoAtaque && teVio)
+            {
+                if (temporizadorAtaque <= 0)
+                {
+                    AtacarJugador();
+                    temporizadorAtaque = tiempoEntreAtaques;
                 }
             }
         }
     }
 
-    // --- ESTO DIBUJA EL CONO EN EL EDITOR ---
+    void BuscarNuevoPunto()
+    {
+        // Creamos una esfera imaginaria alrededor del enemigo y elegimos un punto al azar adentro
+        Vector3 direccionAleatoria = Random.insideUnitSphere * radioDeBusqueda;
+        direccionAleatoria += transform.position;
+
+        NavMeshHit navHit;
+        if (NavMesh.SamplePosition(direccionAleatoria, out navHit, radioDeBusqueda, -1))
+        {
+            agent.SetDestination(navHit.position);
+        }
+    }
+
+    void AtacarJugador()
+    {
+        VidaJugador scriptVida = player.GetComponent<VidaJugador>();
+        if (scriptVida != null)
+        {
+            scriptVida.RecibirDanoJugador(danoAtaque);
+        }
+    }
+
 #if UNITY_EDITOR
     void OnDrawGizmos()
     {
         if (puntoDeVision == null) return;
 
-        // Dibujamos el cono visual
         Handles.color = conoColor;
-
-        // Calculamos la dirección de inicio del cono (rotada hacia la izquierda)
         Vector3 leftBoundary = Quaternion.Euler(0, -visionAngle * 0.5f, 0) * puntoDeVision.forward;
-
-        // Dibujamos el arco del cono
         Handles.DrawSolidArc(puntoDeVision.position, Vector3.up, leftBoundary, visionAngle, visionRange);
 
-        // Dibujamos el rayo hacia el jugador (si existe y está en rango) solo para testear
         if (player != null)
         {
             float dist = Vector3.Distance(puntoDeVision.position, player.position);
@@ -147,6 +176,9 @@ public class Enemigo : MonoBehaviour
                 Gizmos.DrawLine(puntoDeVision.position, player.position);
             }
         }
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, rangoAtaque);
     }
 #endif
 }

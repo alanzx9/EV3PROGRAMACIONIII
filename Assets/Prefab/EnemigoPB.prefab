@@ -421,6 +421,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   saludActual: 100
+  danoAtaque: 15
+  rangoAtaque: 3
+  tiempoEntreAtaques: 1.5
   puntoDeVision: {fileID: 2934839712993957010}
   visionRange: 50
   visionAngle: 180

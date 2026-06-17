@@ -3,7 +3,7 @@ using UnityEngine;
 public class MovimientoJugador : MonoBehaviour
 {
     public CharacterController controller;
-    public Transform camaraJugador; //Aquí arrastraremos tu cámara
+    public Transform camaraJugador;
 
     public Transform cameraWeaponTrack;
 
@@ -20,7 +20,7 @@ public class MovimientoJugador : MonoBehaviour
     public float impulsoSlide = 15f;
     public float friccionSlide = 15f;
     public float alturaSlide = 1f;
-    public float velocidadCamara = 12f; // <-- Qué tan suave baja y sube la cabeza
+    public float velocidadCamara = 12f; //qué tan suave baja y sube la cabeza
 
     [Header("Wall Jump")]
     public float distanciaDeteccionPared = 0.7f;
@@ -39,7 +39,7 @@ public class MovimientoJugador : MonoBehaviour
 
     private float alturaNormal;
     private Vector3 centroNormal;
-    private float alturaCamaraNormal;    // Para guardar la altura de los ojos
+    private float alturaCamaraNormal; // para guardar la altura de los ojos
 
     private bool deslizando = false;
     private Vector3 direccionSlide;
@@ -57,7 +57,6 @@ public class MovimientoJugador : MonoBehaviour
             centroNormal = controller.center;
         }
 
-        // Guardamos a qué altura estaban tus ojos al empezar a jugar
         if (camaraJugador != null)
         {
             alturaCamaraNormal = camaraJugador.localPosition.y;
@@ -97,15 +96,11 @@ public class MovimientoJugador : MonoBehaviour
             velocidadMovimientoActual = Vector3.SmoothDamp(velocidadMovimientoActual, velocidadObjetivo, ref refVelocidad, tiempoSuavizado);
         }
 
-        //controller.Move(velocidadMovimientoActual * Time.deltaTime);
 
-        // --- ANIMACIÓN SUAVE DE LA CÁMARA ---
         if (camaraJugador != null)
         {
-            // Calculamos a qué altura deberían estar los ojos
             float alturaObjetivoCamara = deslizando ? (alturaCamaraNormal - (alturaNormal - alturaSlide)) : alturaCamaraNormal;
 
-            // Movemos la cámara hacia ese objetivo suavemente
             Vector3 posCamara = camaraJugador.localPosition;
             posCamara.y = Mathf.Lerp(posCamara.y, alturaObjetivoCamara, velocidadCamara * Time.deltaTime);
             camaraJugador.localPosition = posCamara;
@@ -118,7 +113,6 @@ public class MovimientoJugador : MonoBehaviour
 
         if (Input.GetButtonDown("Jump"))
         {
-            // Salto normal
             if (controller.isGrounded)
             {
                 velocidadCaida.y = Mathf.Sqrt(fuerzaSalto * -2f * gravedad);
@@ -126,7 +120,6 @@ public class MovimientoJugador : MonoBehaviour
                 if (deslizando)
                     TerminarSlide();
             }
-            // Wall Jump
             else if (tocandoPared)
             {
                 Vector3 direccionSalto = normalPared + Vector3.up;
@@ -143,7 +136,6 @@ public class MovimientoJugador : MonoBehaviour
 
         ItemLogic();
 
-        // UN SOLO MOVE
         Vector3 movimientoFinal = velocidadMovimientoActual + velocidadCaida;
         controller.Move(movimientoFinal * Time.deltaTime);
     }
@@ -154,7 +146,6 @@ public class MovimientoJugador : MonoBehaviour
         direccionSlide = direccion;
         velocidadSlideActual = impulsoSlide;
 
-        // FÍSICA INSTANTÁNEA: Nos agachamos de golpe para que la física no se trabe
         controller.height = alturaSlide;
         controller.center = new Vector3(centroNormal.x, alturaSlide / 2f, centroNormal.z);
     }
@@ -162,7 +153,6 @@ public class MovimientoJugador : MonoBehaviour
     void TerminarSlide()
     {
         deslizando = false;
-        // FÍSICA INSTANTÁNEA: Nos paramos de golpe (la cámara disimulará esto)
         controller.height = alturaNormal;
         controller.center = centroNormal;
     }
@@ -205,7 +195,6 @@ public class MovimientoJugador : MonoBehaviour
 
         RaycastHit hit;
 
-        // Revisamos al frente
         if (Physics.Raycast(transform.position, transform.forward, out hit, distanciaDeteccionPared))
         {
             tocandoPared = true;

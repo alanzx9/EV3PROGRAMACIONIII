@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class RatonCamara : MonoBehaviour
 {
-    // Le ponemos un valor por defecto de 150 para que funcione bien con Time.deltaTime
     public float sensibilidad = 150f; 
     public Transform cuerpoJugador;
     float rotacionX = 0f;
