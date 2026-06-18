@@ -17,6 +17,7 @@ public class TiroVisual : MonoBehaviour
     IEnumerator Desvanecer()
     {
         float tiempo = 0;
+        // Obtenemos el material para cambiar la opacidad
         Material mat = lineRenderer.material;
         Color colorInicial = mat.color;
 
@@ -25,11 +26,12 @@ public class TiroVisual : MonoBehaviour
             tiempo += Time.deltaTime;
             float alpha = Mathf.Lerp(1f, 0f, tiempo / tiempoDesvanecimiento);
 
+            // Cambiamos el alpha del color para que se desvanezca
             mat.color = new Color(colorInicial.r, colorInicial.g, colorInicial.b, alpha);
 
-            yield return null;
+            yield return null; // Espera al siguiente frame
         }
 
-        Destroy(gameObject); // destruye el rastro cuando termina
+        Destroy(gameObject); // Destruye el rastro cuando termina
     }
 }

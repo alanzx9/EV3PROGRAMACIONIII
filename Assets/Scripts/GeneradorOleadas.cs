@@ -5,13 +5,13 @@ using TMPro;
 public class GeneradorOleadas : MonoBehaviour
 {
     [Header("Configuración")]
-    public GameObject prefabEnemigo;
+    public GameObject prefabEnemigo; // el prefab del enemigo clon
     public Transform[] puntosDeSpawn;
     public float tiempoEntreSpawns = 2f;
     public float tiempoDescanso = 5f;
 
     [Header("Condición de Victoria")]
-    public int oleadaFinal = 3;
+    public int oleadaFinal = 3; // "duracion" del nivel
 
     [Header("Interfaz UI (Textos)")]
     public TextMeshProUGUI textoOleadaActual;
@@ -25,22 +25,24 @@ public class GeneradorOleadas : MonoBehaviour
 
     void Start()
     {
-        ComenzarOleada();
+        ComenzarOleada(); //empieza la oleada
     }
 
     void Update()
     {
         if (textoOleadaActual != null)
         {
+            // Muestra "OLEADA: 1 / 3"
             textoOleadaActual.text = "OLEADA: " + oleadaActual + " / " + oleadaFinal;
         }
 
         if (textoEnemigosRestantes != null)
         {
+            // Sumamos los enemigos que están caminando + los que aún faltan por nacer
             int totalRestantes = enemigosVivos + enemigosPorGenerar;
             textoEnemigosRestantes.text = "Enemigos restantes: " + totalRestantes;
         }
-
+        // si no quedan monos x salir, cortamos el ciclo y se prepara la siguiente ronda
         if (enemigosPorGenerar == 0 && enemigosVivos == 0 && oleadaEnCurso)
         {
             oleadaEnCurso = false;
@@ -51,24 +53,24 @@ public class GeneradorOleadas : MonoBehaviour
     void ComenzarOleada()
     {
         oleadaEnCurso = true;
-        enemigosPorGenerar = oleadaActual * 5;
-        StartCoroutine(GenerarEnemigos());
+        enemigosPorGenerar = oleadaActual * 5; //cantidas de monos que salen, x5
+        StartCoroutine(GenerarEnemigos()); // uno por uno...
     }
 
     IEnumerator GenerarEnemigos()
     {
         while (enemigosPorGenerar > 0)
         {
-            Transform puntoAleatorio = puntosDeSpawn[Random.Range(0, puntosDeSpawn.Length)];
+            Transform puntoAleatorio = puntosDeSpawn[Random.Range(0, puntosDeSpawn.Length)]; //un punto de spawn al azar
 
             if (puntoAleatorio == null) yield break;
 
-            Instantiate(prefabEnemigo, puntoAleatorio.position, puntoAleatorio.rotation);
+            Instantiate(prefabEnemigo, puntoAleatorio.position, puntoAleatorio.rotation); //creacion del mono en el spawn
 
-            enemigosVivos++;
+            enemigosVivos++; //actualizacion de contadores
             enemigosPorGenerar--;
 
-            yield return new WaitForSeconds(tiempoEntreSpawns);
+            yield return new WaitForSeconds(tiempoEntreSpawns); //esperamos unos segundos para crear el siguiente
         }
     }
 
@@ -76,9 +78,9 @@ public class GeneradorOleadas : MonoBehaviour
     {
         yield return new WaitForSeconds(tiempoDescanso);
 
-        oleadaActual++;
+        oleadaActual++; 
 
-        if (oleadaActual > oleadaFinal)
+        if (oleadaActual > oleadaFinal) // si pasamos la ronda final, le decimos al gamemanager que se gano el nivel
         {
             if (GameManager.Instance != null)
             {
@@ -87,7 +89,7 @@ public class GeneradorOleadas : MonoBehaviour
         }
         else
         {
-            ComenzarOleada();
+            ComenzarOleada(); //si no empieza la siguiente ronda
         }
     }
 

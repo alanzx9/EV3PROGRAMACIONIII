@@ -12,28 +12,29 @@ public class VidaJugador : MonoBehaviour
 
     void Start()
     {
-        vidaActual = vidaMaxima;
-        ActualizarBarra();
+        vidaActual = vidaMaxima; //vida llena al inicio del nivel
+        ActualizarBarra(); // llena visualmente
     }
 
     public void RecibirDanoJugador(float cantidad)
     {
-        vidaActual -= cantidad;
+        vidaActual -= cantidad; //restamos el dano que nos hicieron
         vidaActual = Mathf.Clamp(vidaActual, 0, vidaMaxima);
 
         Debug.Log("Vida del jugador: " + vidaActual);
-
+        //actualizamos el canvas
         ActualizarBarra();
 
-        if (vidaActual <= 0)
+        if (vidaActual <= 0) //si morimos...
         {
             if (GameManager.Instance != null)
             {
-                GameManager.Instance.Derrota();
+                GameManager.Instance.Derrota(); //aparece panel de derrota y congelamos el juego
             }
         }
     }
 
+    // --- FUNCIÓN QUE MUEVE LA BARRA ---
     void ActualizarBarra()
     {
         if (barraVidaUI != null)

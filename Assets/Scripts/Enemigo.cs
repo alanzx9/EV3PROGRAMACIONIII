@@ -21,8 +21,8 @@ public class Enemigo : MonoBehaviour
     private float temporizadorAtaque = 0f;
 
     [Header("Búsqueda (Patrullaje)")]
-    public float radioDeBusqueda = 15f; // qué tan lejos caminan al azar buscando al jugador
-    private bool teVio = false;         // interruptor para saber si ya te descubrió
+    public float radioDeBusqueda = 15f; // Qué tan lejos caminan al azar buscando al jugador
+    private bool teVio = false;         // Interruptor para saber si ya te descubrió
 
     [Header("Visión")]
     public Transform puntoDeVision;
@@ -49,6 +49,7 @@ public class Enemigo : MonoBehaviour
             player = playerObject.transform;
         }
 
+        // Apenas nace, le decimos que empiece a buscar por la zona
         BuscarNuevoPunto();
     }
 
@@ -58,6 +59,7 @@ public class Enemigo : MonoBehaviour
         saludActual = Mathf.Clamp(saludActual, 0, saludMaxima);
         ActualizarBarra();
 
+        // Si le disparas por la espalda, se da cuenta de dónde estás automáticamente
         teVio = true;
 
         if (saludActual <= 0)
@@ -88,6 +90,7 @@ public class Enemigo : MonoBehaviour
         {
             float distanceToPlayer = Vector3.Distance(transform.position, player.position);
 
+            // Si todavía no te ha visto, usa sus "ojos" para buscarte
             if (!teVio)
             {
                 if (distanceToPlayer <= visionRange)
@@ -113,13 +116,16 @@ public class Enemigo : MonoBehaviour
 
             if (teVio)
             {
+                // Si ya te vio, corre directo hacia ti
                 agent.SetDestination(player.position);
             }
             else
             {
+                // Si NO te ha visto, camina buscando por el mapa
+                // Si ya llegó al punto que estaba revisando...
                 if (!agent.pathPending && agent.remainingDistance < 0.5f)
                 {
-                    BuscarNuevoPunto();
+                    BuscarNuevoPunto(); // elige otro punto al azar para ir a investigar
                 }
             }
 
@@ -143,8 +149,10 @@ public class Enemigo : MonoBehaviour
         direccionAleatoria += transform.position;
 
         NavMeshHit navHit;
+        // Le preguntamos a Unity si ese punto al azar cae dentro del suelo azul (NavMesh)
         if (NavMesh.SamplePosition(direccionAleatoria, out navHit, radioDeBusqueda, -1))
         {
+            // Le decimos al enemigo que camine hacia ese punto válido
             agent.SetDestination(navHit.position);
         }
     }

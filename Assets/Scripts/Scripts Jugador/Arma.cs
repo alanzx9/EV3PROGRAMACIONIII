@@ -13,7 +13,7 @@ public class Arma : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Mouse0))
+        if (Input.GetKeyDown(KeyCode.Mouse0)) //click izquierdo para disparar
         {
             Disparar();
         }
@@ -23,13 +23,13 @@ public class Arma : MonoBehaviour
     {
         RaycastHit impacto;
 
-        if (Physics.Raycast(camaraJugador.transform.position, camaraJugador.transform.forward, out impacto, rango))
+        if (Physics.Raycast(camaraJugador.transform.position, camaraJugador.transform.forward, out impacto, rango)) //lazer hacia delante
         {
             Debug.Log("¡Pum! Le diste a: " + impacto.transform.name);
 
             GameObject nuevoRastro = Instantiate(prefabRastroBala, puntoDeDisparo.position, Quaternion.identity);
 
-            nuevoRastro.GetComponent<TiroVisual>().ConfigurarRastro(puntoDeDisparo.position, impacto.point);
+            nuevoRastro.GetComponent<TiroVisual>().ConfigurarRastro(puntoDeDisparo.position, impacto.point); //laser visual
 
             Debug.DrawLine(camaraJugador.transform.position, impacto.point, Color.red, 0.5f);
 

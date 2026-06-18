@@ -7,11 +7,11 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    [Header("Pantallas de interfaz (Canvas)")]
+    [Header("Pantallas de interfaz (Canvas)")] //paneles de victoria y derrota
     public GameObject pantallaVictoria;
     public GameObject pantallaDerrota;
 
-    private bool juegoTerminado = false;
+    private bool juegoTerminado = false; //bool para que no salten los dos paneles a la vez
 
     void Awake()
     {
@@ -21,13 +21,13 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        Time.timeScale = 1f;
-        if (pantallaVictoria != null) pantallaVictoria.SetActive(false);
+        Time.timeScale = 1f; //el tiempo empieza a correr
+        if (pantallaVictoria != null) pantallaVictoria.SetActive(false); // se apagan los paneles victoria/derrota
         if (pantallaDerrota != null) pantallaDerrota.SetActive(false);
     }
     void Update()
     {
-        if (juegoTerminado && Input.GetKeyDown(KeyCode.R))
+        if (juegoTerminado && Input.GetKeyDown(KeyCode.R)) // con r se reinicia el juego si pierdes o ganas
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
@@ -39,7 +39,7 @@ public class GameManager : MonoBehaviour
         juegoTerminado = true;
 
         Debug.Log("¡Victoria Absoluta!");
-        if (pantallaVictoria != null) pantallaVictoria.SetActive(true);
+        if (pantallaVictoria != null) pantallaVictoria.SetActive(true); //prendemos panel de win y congelamos el juego
 
         Time.timeScale = 0f;
     }
@@ -50,7 +50,7 @@ public class GameManager : MonoBehaviour
         juegoTerminado = true;
 
         Debug.Log("¡Has caído en combate!");
-        if (pantallaDerrota != null) pantallaDerrota.SetActive(true);
+        if (pantallaDerrota != null) pantallaDerrota.SetActive(true); //panel de derrota
 
         Time.timeScale = 0f;
     }
