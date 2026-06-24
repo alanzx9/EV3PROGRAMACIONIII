@@ -5,7 +5,7 @@ using TMPro;
 public class GeneradorOleadas : MonoBehaviour
 {
     [Header("Configuración")]
-    public GameObject prefabEnemigo; // el prefab del enemigo clon
+    public GameObject[] prefabsEnemigos; // Arreglo con los prefabs de los enemigos (ej. EnemigoPB1 y Perro Robot)
     public Transform[] puntosDeSpawn;
     public float tiempoEntreSpawns = 2f;
     public float tiempoDescanso = 5f;
@@ -65,7 +65,20 @@ public class GeneradorOleadas : MonoBehaviour
 
             if (puntoAleatorio == null) yield break;
 
-            Instantiate(prefabEnemigo, puntoAleatorio.position, puntoAleatorio.rotation); //creacion del mono en el spawn
+            // Verificamos que el arreglo tenga enemigos asignados antes de spawnear
+            if (prefabsEnemigos != null && prefabsEnemigos.Length > 0)
+            {
+                // Selecciona un enemigo al azar de la lista
+                GameObject enemigoAleatorio = prefabsEnemigos[Random.Range(0, prefabsEnemigos.Length)];
+
+                // Creación del enemigo seleccionado en el punto de spawn
+                Instantiate(enemigoAleatorio, puntoAleatorio.position, puntoAleatorio.rotation);
+            }
+            else
+            {
+                Debug.LogError("¡Olvidaste asignar los prefabs de los enemigos en el Inspector del GameManager!");
+                yield break;
+            }
 
             enemigosVivos++; //actualizacion de contadores
             enemigosPorGenerar--;
@@ -78,7 +91,7 @@ public class GeneradorOleadas : MonoBehaviour
     {
         yield return new WaitForSeconds(tiempoDescanso);
 
-        oleadaActual++; 
+        oleadaActual++;
 
         if (oleadaActual > oleadaFinal) // si pasamos la ronda final, le decimos al gamemanager que se gano el nivel
         {
